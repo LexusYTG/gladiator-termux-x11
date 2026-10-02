@@ -210,7 +210,7 @@ public class LorieView extends SurfaceView implements InputStub {
 
             currentComposingText = reuse ? newText : null;
 
-            if (activity.useTermuxEKBarBehaviour && activity.mExtraKeys != null)
+            if (activity != null && activity.useTermuxEKBarBehaviour && activity.mExtraKeys != null)
                 activity.mExtraKeys.unsetSpecialKeys();
             commitedText = true;
             return true;
@@ -355,7 +355,7 @@ public class LorieView extends SurfaceView implements InputStub {
     }
 
     void getDimensionsFromSettings(int width, int height) {
-        Prefs prefs = activity.prefs;
+        Prefs prefs = activity != null ? activity.prefs : ((LorieApp)getContext().getApplicationContext()).builtInPrefs;
         int w = width;
         int h = height;
         switch(prefs.displayResolutionMode.get()) {
@@ -479,7 +479,7 @@ public class LorieView extends SurfaceView implements InputStub {
     }
 
     private void updateViewport() {
-        Prefs prefs = activity.prefs;
+        Prefs prefs = activity != null ? activity.prefs : ((LorieApp)getContext().getApplicationContext()).builtInPrefs;
 
         int surfaceW = getMeasuredWidth(), surfaceH = getMeasuredHeight();
         // Views the insets reserve room for are hidden while the dimensions are frozen.
@@ -568,7 +568,7 @@ public class LorieView extends SurfaceView implements InputStub {
         if (hardwareKbdScancodesWorkaround)
             return false;
 
-        return activity.handleKey(event);
+        return activity != null && activity.handleKey(event);
     }
 
     @Override
@@ -592,7 +592,7 @@ public class LorieView extends SurfaceView implements InputStub {
         hardwareKbdScancodesWorkaround = p.hardwareKbdScancodesWorkaround.get();
         clipboardSyncEnabled = p.clipboardEnable.get();
         setClipboardSyncEnabled(mNativeContext, clipboardSyncEnabled, clipboardSyncEnabled);
-        activity.mInputHandler.refreshInputDevices();
+        if (activity != null && activity.mInputHandler != null) activity.mInputHandler.refreshInputDevices();
     }
 
     // It is used in native code
@@ -650,12 +650,12 @@ public class LorieView extends SurfaceView implements InputStub {
         } else
             clipboard.removePrimaryClipChangedListener(clipboardListener);
 
-        activity.mInputHandler.refreshInputDevices();
+        if (activity != null && activity.mInputHandler != null) activity.mInputHandler.refreshInputDevices();
     }
 
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-        if (activity.prefs.enforceCharBasedInput.get())
+        if ((activity != null ? activity.prefs : ((LorieApp)getContext().getApplicationContext()).builtInPrefs).enforceCharBasedInput.get())
             outAttrs.inputType = InputType.TYPE_NULL;
         else
             outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_NORMAL;
